@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    hostname: mysql-primary
+    # שימוש בסיסמה שהגדרנו מראש
+    secrets:
+      - mysql_root_password
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      TZ: "Asia/Jerusalem"
+    
+    # חיבור קובץ הקונפיגורציה והמידע
+    volumes:
+      - ./config/my.cnf:/etc/mysql/my.cnf:ro          # טוען את ההגדרות שלנו
+      - mysql_data:/var/lib/mysql                       # המידע עצמו (נשמר ב-Volume)
+    
+    # הגדרת הרשת
+    networks:
+      - backend-network
+    
+    # הגדרות ריצה ומשאבים
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == database  # ירוץ רק על השרת שתייגת
+      resources:
+        limits:
+          cpus: '3.5'       # משאיר חצי ליבה למערכת
+          memory: 7G        # גבול עליון קשיח
+        reservations:
+          cpus: '2'         # מבטיח שלפחות 2 ליבות יהיו פנויות לו
+          memory: 6G        # מבטיח שהזיכרון הזה שמור לו
+
+      # בדיקת בריאות - חשוב מאוד ב-Swarm
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+    # מדיניות אתחול
+    restart: always
+
+volumes:
+  mysql_data:
+    # אנחנו רוצים שהמידע יישמר על הדיסק המקומי של השרת
+    driver: local
+
+networks:
+  backend-network:
+    external: true  # נניח שכבר יצרת את הרשת הזו ידנית
