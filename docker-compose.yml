@@ -8,20 +8,22 @@ services:
       MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
       TZ: "Asia/Jerusalem"
     
+    configs:
+      - source: mysql_custom_config
+        target: /etc/mysql/my.cnf
+    
     volumes:
-      - ./config/my.cnf:/etc/mysql/my.cnf:ro
       - mysql_data:/var/lib/mysql
     
     networks:
       - backend-network
-    
-    # --- התיקון כאן: healthcheck בחוץ, באותה שורה כמו deploy ---
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s # נותן ל-MySQL זמן לעלות לפני שמתחילים להיכשל
+      start_period: 30s
 
     deploy:
       mode: replicated
@@ -46,3 +48,7 @@ volumes:
 networks:
   backend-network:
     external: true
+
+configs:
+  mysql_custom_config:
+    file: ./config/my.cnf
