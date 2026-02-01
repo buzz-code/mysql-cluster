@@ -37,7 +37,7 @@ services:
           memory: 7G
         reservations:
           cpus: '2'
-          memory: 6G
+          memory: 7G
       restart_policy:
         condition: on-failure
 
