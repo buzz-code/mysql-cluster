@@ -1,6 +1,9 @@
 version: "3.8"
 
 services:
+  # -------------------------------------------------------
+  # 1. The Database Server (Dedicated Node)
+  # -------------------------------------------------------
   db:
     image: mysql:8.0
     hostname: mysql-primary
@@ -40,6 +43,68 @@ services:
           memory: 7G
       restart_policy:
         condition: on-failure
+
+  # -------------------------------------------------------
+  # 2. PhpMyAdmin (Runs anywhere BUT the DB node)
+  # -------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin:5.2.1
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role != database
+      # labels:
+      #   caddy: db-admin.$DOMAIN_NAME
+      #   caddy.reverse_proxy: "{{upstreams 80}}"
+    environment:
+      PMA_HOST: db 
+      UPLOAD_LIMIT: 100M
+    networks:
+      - backend-network
+
+  # -------------------------------------------------------
+  # 3. Automated Backups (Runs anywhere)
+  # -------------------------------------------------------
+  backup:
+    image: tiredofit/db-backup
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role != database
+    volumes:
+      - ./backups:/backup
+    networks:
+      - backend-network
+    environment:
+      - TZ=Asia/Jerusalem
+      
+      - DEFAULT_BACKUP_BEGIN=0 3 * * *
+      
+      - DEFAULT_CLEANUP_TIME=10080
+      - DEFAULT_COMPRESSION=ZSTD
+      - DEFAULT_CHECKSUM=MD5
+      
+      # --- Job 1: MySQL Database ---
+      - DB01_TYPE=mysql
+      - DB01_HOST=db
+      - DB01_USER=root
+      - DB01_PASS=${DB_PASSWORD}
+      - DB01_NAME=ALL
+
+      # --- S3 / Cloud Storage Settings (Optional) ---
+      # כדי להפעיל, יש להסיר את ההערות (#) ולהגדיר את המשתנים
+      
+      # - DEFAULT_BACKUP_LOCATION=S3      # שינוי מ-FILESYSTEM ל-S3
+      
+      # הגדרות S3 (מתאים ל-AWS, Wasabi, Backblaze B2, MinIO)
+      # - DEFAULT_S3_BUCKET=my-bucket-name
+      # - DEFAULT_S3_REGION=us-east-1     # או ה-Region של הספק שלך
+      # - DEFAULT_S3_HOST=s3.us-west-000.backblazeb2.com # דוגמה ל-Backblaze
+      # - DEFAULT_S3_KEY_ID=xxxxxxxx      # המפתח הציבורי
+      # - DEFAULT_S3_KEY_SECRET=xxxxxxxx  # המפתח הפרטי
+      # - DEFAULT_S3_PATH=mysql_backups   # תיקייה בתוך הבאקט
 
 volumes:
   mysql_data:
