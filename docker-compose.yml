@@ -74,7 +74,7 @@ services:
         constraints:
           - node.labels.role != database
     volumes:
-      - ./backups:/backup
+      - backup_cache:/backup
     networks:
       - backend-network
     environment:
@@ -108,6 +108,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  backup_cache:
     driver: local
 
 networks:
