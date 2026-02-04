@@ -79,9 +79,9 @@ services:
       - backend-network
     environment:
       - TZ=Asia/Jerusalem
+      - CONTAINER_ENABLE_MONITORING=FALSE
       
       - DEFAULT_BACKUP_BEGIN=0 3 * * *
-      
       - DEFAULT_CLEANUP_TIME=10080
       - DEFAULT_COMPRESSION=ZSTD
       - DEFAULT_CHECKSUM=MD5
@@ -92,6 +92,7 @@ services:
       - DB01_USER=root
       - DB01_PASS=${DB_PASSWORD}
       - DB01_NAME=ALL
+      - DB01_LOG_LEVEL=DEBUG
 
       # --- S3 / Cloud Storage Settings (Optional) ---
       # כדי להפעיל, יש להסיר את ההערות (#) ולהגדיר את המשתנים
