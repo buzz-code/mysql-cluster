@@ -85,7 +85,8 @@ services:
       - DEFAULT_CLEANUP_TIME=10080
       - DEFAULT_COMPRESSION=ZSTD
       - DEFAULT_CHECKSUM=MD5
-      
+      - DEBUG_MODE: TRUE
+
       # --- Job 1: MySQL Database ---
       - DB01_TYPE=mysql
       - DB01_HOST=db
