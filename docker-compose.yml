@@ -85,7 +85,7 @@ services:
       - DEFAULT_CLEANUP_TIME=10080
       - DEFAULT_COMPRESSION=ZSTD
       - DEFAULT_CHECKSUM=MD5
-      - DEBUG_MODE=TRUE
+      - DEBUG_MODE=${DEBUG_MODE}
 
       # --- S3 / Cloud Storage Settings ---
       - DEFAULT_BACKUP_LOCATION=S3
