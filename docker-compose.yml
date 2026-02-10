@@ -85,7 +85,18 @@ services:
       - DEFAULT_CLEANUP_TIME=10080
       - DEFAULT_COMPRESSION=ZSTD
       - DEFAULT_CHECKSUM=MD5
-      - DEBUG_MODE: TRUE
+      - DEBUG_MODE=TRUE
+
+      # --- S3 / Cloud Storage Settings ---
+      - DEFAULT_BACKUP_LOCATION=S3
+      - DEFAULT_BACKUP_TYPE=S3
+      - DEFAULT_S3_BUCKET=${S3_BUCKET}
+      - DEFAULT_S3_HOST=${S3_HOST}
+      - DEFAULT_S3_REGION=${S3_REGION}
+      - DEFAULT_S3_KEY_ID=${S3_KEY_ID}
+      - DEFAULT_S3_KEY_SECRET=${S3_KEY_SECRET}
+      - DEFAULT_S3_PATH=mysql_backups
+      - DEFAULT_S3_URI_STYLE=Path
 
       # --- Job 1: MySQL Database ---
       - DB01_TYPE=mysql
@@ -94,19 +105,6 @@ services:
       - DB01_PASS=${DB_PASSWORD}
       - DB01_NAME=ALL
       - DB01_LOG_LEVEL=DEBUG
-
-      # --- S3 / Cloud Storage Settings (Optional) ---
-      # כדי להפעיל, יש להסיר את ההערות (#) ולהגדיר את המשתנים
-      
-      # - DEFAULT_BACKUP_LOCATION=S3      # שינוי מ-FILESYSTEM ל-S3
-      
-      # הגדרות S3 (מתאים ל-AWS, Wasabi, Backblaze B2, MinIO)
-      # - DEFAULT_S3_BUCKET=my-bucket-name
-      # - DEFAULT_S3_REGION=us-east-1     # או ה-Region של הספק שלך
-      # - DEFAULT_S3_HOST=s3.us-west-000.backblazeb2.com # דוגמה ל-Backblaze
-      # - DEFAULT_S3_KEY_ID=xxxxxxxx      # המפתח הציבורי
-      # - DEFAULT_S3_KEY_SECRET=xxxxxxxx  # המפתח הפרטי
-      # - DEFAULT_S3_PATH=mysql_backups   # תיקייה בתוך הבאקט
 
 volumes:
   mysql_data:
