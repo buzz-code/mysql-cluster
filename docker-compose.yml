@@ -45,10 +45,10 @@ services:
         condition: on-failure
 
   # -------------------------------------------------------
-  # 2. DbGate web DB admin (Runs anywhere BUT the DB node)
+  # 2. PhpMyAdmin (Runs anywhere BUT the DB node)
   # -------------------------------------------------------
-  dbgate:
-    image: dbgate/dbgate:7.3.2-alpine
+  phpmyadmin:
+    image: phpmyadmin:5.2
     deploy:
       replicas: 1
       placement:
@@ -56,19 +56,10 @@ services:
           - node.labels.role != database
       # labels:
       #   caddy: db-admin.$DOMAIN_NAME
-      #   caddy.reverse_proxy: "{{upstreams 3000}}"
+      #   caddy.reverse_proxy: "{{upstreams 80}}"
     environment:
-      LOGIN: "${DBGATE_LOGIN:-admin}"
-      PASSWORD: "${DBGATE_PASSWORD:?DBGATE_PASSWORD is required}"
-      CONNECTIONS: mysql
-      LABEL_mysql: MySQL primary
-      SERVER_mysql: db
-      PORT_mysql: 3306
-      USER_mysql: root
-      PASSWORD_mysql: "${DB_PASSWORD}"
-      ENGINE_mysql: mysql@dbgate-plugin-mysql
-    volumes:
-      - dbgate_data:/root/.dbgate
+      PMA_HOST: db 
+      UPLOAD_LIMIT: 100M
     networks:
       - backend-network
 
@@ -119,8 +110,6 @@ volumes:
   mysql_data:
     driver: local
   backup_cache:
-    driver: local
-  dbgate_data:
     driver: local
 
 networks:
