@@ -67,44 +67,53 @@ services:
   # 3. Automated Backups (Runs anywhere)
   # -------------------------------------------------------
   backup:
-    image: tiredofit/db-backup
+    # Pinned: tiredofit/db-backup:latest became a stub that only prints a
+    # "moved" banner, so every redeploy silently stopped backups.
+    # Successor image, same DB01_* / DEFAULT_* variables.
+    image: docker.io/nfrastack/db-backup:5.0.12
+    labels:
+      # Ship logs to OpenObserve so a missing "backup complete" line can alert.
+      co.elastic.logs/enabled: 'true'
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.labels.role != database
+      restart_policy:
+        condition: any
+        delay: 60s
     volumes:
       - backup_cache:/backup
     networks:
       - backend-network
     environment:
       - TZ=Asia/Jerusalem
-      - CONTAINER_ENABLE_MONITORING=FALSE
-      
+      - TIMEZONE=Asia/Jerusalem
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=json
+
       - DEFAULT_BACKUP_BEGIN=0 3 * * *
       - DEFAULT_CLEANUP_TIME=10080
       - DEFAULT_COMPRESSION=ZSTD
       - DEFAULT_CHECKSUM=MD5
-      - DEBUG_MODE=${DEBUG_MODE}
 
       # --- S3 / Cloud Storage Settings ---
-      - DEFAULT_BACKUP_LOCATION=S3
-      - DEFAULT_BACKUP_TYPE=S3
+      # Custom S3_HOST endpoints always use path-style URLs in v5.
+      - DEFAULT_BACKUP_LOCATION=s3
       - DEFAULT_S3_BUCKET=${S3_BUCKET}
       - DEFAULT_S3_HOST=${S3_HOST}
       - DEFAULT_S3_REGION=${S3_REGION}
       - DEFAULT_S3_KEY_ID=${S3_KEY_ID}
       - DEFAULT_S3_KEY_SECRET=${S3_KEY_SECRET}
       - DEFAULT_S3_PATH=mysql_backups
-      - DEFAULT_S3_URI_STYLE=Path
 
       # --- Job 1: MySQL Database ---
+      # NAME=ALL = every user database (mysql/sys system schemas excluded).
       - DB01_TYPE=mysql
       - DB01_HOST=db
       - DB01_USER=root
       - DB01_PASS=${DB_PASSWORD}
       - DB01_NAME=ALL
-      - DB01_LOG_LEVEL=DEBUG
 
 volumes:
   mysql_data:
